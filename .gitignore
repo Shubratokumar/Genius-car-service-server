@@ -1,3 +1,5 @@
 // git ignore
 .env
 node_modules
+// get access token secret 
+// require('crypto').randomBytes(64).toString('hex')
