@@ -10,6 +10,22 @@ const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
 
+// verifing jwt
+function verifyJWT(req, res, next){
+    const authHeaders = req.headers.authorization;
+    if(!authHeaders){
+        return res.status(401).send({message: "Unautherized Access"})
+    }
+    const token = authHeaders.split(" ")[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded){
+        if(err){
+            return res.status(403).send({message: "Forbidden Access"});
+        }
+        // console.log("decoded", decoded);
+        res.decoded = decoded;
+        next()
+    })
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.0a811.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -27,6 +43,7 @@ async function run(){
             const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: '1d'
             });
+            console.log(accessToken)
             res.send({accessToken});
         })
         /* app.post('/login', async(req, res) =>{
@@ -71,13 +88,18 @@ async function run(){
 
         // Order Collection API
         // GET API
-        app.get('/order', async(req, res)=>{
+        app.get('/order', verifyJWT, async(req, res)=>{
+            const decodedEmail = req.decoded?.email;
             const email = req.query.email;
-            const query = {email: email};
-            const cursor = orderCollection.find(query);
-            const orders = await cursor.toArray();
-            // console.log(orders);
-            res.send(orders)
+            if(email === decodedEmail){
+                const query = {email: email};
+                const cursor = orderCollection.find(query);
+                const orders = await cursor.toArray();
+                // console.log(orders);
+                res.send(orders)
+            } else{
+                res.status(403).send({message: "Unauthorized assess"})
+            }
         })
         // post API 
         app.post('/order', async(req,res)=>{
@@ -85,8 +107,6 @@ async function run(){
             const result = await orderCollection.insertOne(order);
             res.send(result);
         })
-
-
     }
     finally{
 
