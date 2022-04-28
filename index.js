@@ -43,7 +43,7 @@ async function run(){
             const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
                 expiresIn: '1d'
             });
-            console.log(accessToken)
+            // console.log(accessToken)
             res.send({accessToken});
         })
         /* app.post('/login', async(req, res) =>{
