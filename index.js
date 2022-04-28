@@ -118,6 +118,9 @@ run().catch(console.dir);
 app.get('/', (req, res)=>{
     res.send("Genius server is Running!!!");
 })
+app.get('/test', (req,res)=>{
+    res.send("Testing the Heroku server is running or not.")
+})
 
 app.listen(port,()=>{
     console.log('Genius server is running under the port no :', port);
